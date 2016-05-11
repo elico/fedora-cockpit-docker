@@ -1,0 +1,28 @@
+#!/bin/sh -eu
+# This is the startup script for Cockpit when run in a privileged
+# We copy cockpit-bridge and related stuff into the host, so that
+# they work correctly there.
+#
+# The host file system must be mounted at /host
+#
+cd /
+PATH="/bin:/sbin"
+if [ ! -f /etc/os-release ]; then
+echo "cockpit-run: host file system is not mounted at /host" >&2
+exit 1
+fi
+#if [ -f /usr/bin/cockpit-bridge ]; then
+#echo "cockpit-run: refusing to run on host with Cockpit already installed" >&2
+#exit 1
+#fi
+set -x
+#/bin/umount /etc || true 2> /dev/null
+#/bin/umount /var || true 2> /dev/null
+#rm -rf /stage
+#mkdir -p /stage/opt/cockpit /stage/etc /stage/var/lib /stage/opt/cockpit/lib64/gio/modules
+cp -p /container/cockpit-bridge /stage/usr/local/bin
+cp -p /container/cockpitd /stage/usr/local/libexec
+if [ ! -f /etc/cockpit/ws-certs.d/~self-signed.cert ]; then
+/usr/sbin/remotectl certificate --ensure
+fi
+#exec /usr/bin/nsenter --net=/host/proc/1/ns/net /usr/libexec/cockpit-ws --local-ssh
